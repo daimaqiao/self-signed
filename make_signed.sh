@@ -1,6 +1,7 @@
-#/bin/sh
+#/usr/bin/env bash
 # make_signed.sh
 # 1/2016.0307, BY daimaqiao
+# 2/2019.0616, BY daimaqiao
 #
 
 if [ -z "$(which openssl)" ]; then
@@ -10,7 +11,7 @@ if [ -z "$(which openssl)" ]; then
 fi
 
 if [ ! -s "$1" ] || [ ! -s "$2" ] || [ -z "$3" ]; then
-	echo "USAGE: $0 <root_crt> <root_key> <signed_name> [<signed_subj>, like '/C=CN/O=daimaqiao/...']"
+	echo "USAGE: $0 <root_crt> <root_key> <signed_name> [<signed_subj>, like 'CN=daimaqiao']"
 	echo "The <root_crt> is the cert file of the root cert, which should be exist!"
 	echo "The <root_key> is the key  file of the root cert, which should be exist also!"
 	echo ""
@@ -27,7 +28,7 @@ echo "1. Generate the private key file ..."
 if [ -s $NAME.key ]; then
 	echo "File '$NAME.key' exist!"
 else
-	openssl genrsa -des3 -out $NAME.key 2048
+	openssl genrsa -out $NAME.key 2048
 	[ "$?" -ne "0" ] && exit 2
 	[ -s $NAME.key ] && echo "Done with '$NAME.key'!"
 fi
@@ -39,7 +40,7 @@ echo "2. Generate the request to be signed ..."
 if [ -s $NAME.csr ]; then
 	echo "File '$NAME.csr' exist!"
 else
-	openssl req -new -key $NAME.key -out $NAME.csr $SUBJ
+	openssl req -new -sha256 -key $NAME.key -out $NAME.csr $SUBJ
 	[ "$?" -ne "0" ] && exit 2
 	[ -f $NAME.csr ] && echo "Done with '$NAME.csr'!"
 fi
@@ -51,11 +52,9 @@ if [ -s $NAME.crt ]; then
 else
 	SERIAL="-CAcreateserial"
 	[ -s $NAME.srl ] && SERIAL="-CAserial $NAME.srl"
-	echo openssl x509 -req -days 3650 -in $NAME.csr -out $NAME.crt -CA $CA -CAkey $CAKEY $SERIAL
-	openssl x509 -req -days 3650 -in $NAME.csr -out $NAME.crt -CA $CA -CAkey $CAKEY $SERIAL
+	openssl x509 -req -sha256 -days 3650 -in $NAME.csr -out $NAME.crt -CA $CA -CAkey $CAKEY $SERIAL
 	[ "$?" -ne "0" ] && exit 2
 	[ -f $NAME.crt ] && echo "Done with '$NAME.crt'!"
 fi
 echo ""
-
 

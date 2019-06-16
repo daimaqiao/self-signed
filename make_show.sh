@@ -1,6 +1,7 @@
 #/usr/bin/env bash
 # make_show.sh
 # 1/2019.0614, BY daimaqiao
+# 2/2019.0616, BY daimaqiao
 #
 
 if [ -z "$(which openssl)" ]; then
@@ -25,6 +26,6 @@ if [ ! -s "$1" ] || [ "$INFORM" = "err" ];  then
 	exit 1
 fi
 
-openssl x509 -in $1 -text $INFORM
+openssl x509 -in $1 -noout -text $INFORM
 echo ""
 
